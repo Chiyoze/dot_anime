@@ -1,0 +1,95 @@
+-- ////////// 設定値 //////////
+--track0:ブロック(横), 1, 50, 5, 1
+--track1:ブロック(縦), 1, 50, 5, 1
+--track2:表示範囲(横), 1, 100, 8, 1
+--track3:表示範囲(縦), 1, 100, 8, 1
+--dialog:デバッグ, isGA_Debug=false;デバッグマップ, Dig_MAP=1;再生速度, GA_Speed=1;FPS, GA_FPS=24;Animation, GA_Script="script/GameAnimations/DigAnimation.lua";
+-- ////////// 設定値 //////////
+obj.setfont("MS UI Gothic",40)	-- デバッグ用
+local isInit = obj.time == 0 or game_anime == nil
+
+if(isInit)then
+  game_anime = {}
+  game_anime.main_script = nil
+  -- ////////// メインファイル読み込み //////////
+  -- game_anime.main_script = require("script.GameAnimations.DigAnimation")
+  -- game_anime.load_script = loadfile("script/GameAnimations/DigAnimation.lua")
+  game_anime.load_script = loadfile(GA_Script)
+  game_anime.main_script = game_anime.load_script()
+  -- ////////// メインファイル読み込み //////////
+
+  -- ////////// ディスプレイ //////////
+  game_anime.screen_width = obj.screen_w
+  game_anime.screen_height = obj.screen_h
+  -- ////////// ディスプレイ //////////
+
+  -- ////////// テスト用 //////////
+  game_anime.isDebug = isGA_Debug
+  game_anime.count = 0
+  -- ////////// テスト用 //////////
+
+  -- ##########▼ デバッグ用 ▼##########
+  game_anime.debug = function(this)
+    -- 仮想バッファを新規作成しターゲットをそちらに移す
+    obj.setoption("drawtarget","tempbuffer", this.screen_width, this.screen_height)
+
+
+    -- 読み込み中スクリプトのタイトル
+    if game_anime.main_script ~= nil then
+      obj.load("text", game_anime.main_script.title)
+    else
+      obj.load("text", "Don't loaded script")
+    end
+    obj.draw(0, -500)
+
+    obj.load("image", obj.getinfo("script_path").."GameAnimations/img/test.jpg")
+    obj.effect("クリッピング","上", 10)
+    obj.effect("クリッピング","右", 10)
+    obj.effect("クリッピング","左", 10)
+    obj.effect("クリッピング","下", 10)
+    obj.draw(-350, -420)
+
+    for i = 1, 5 do
+      obj.effect("リサイズ","拡大率", 50)
+      obj.effect("クリッピング","左", 10)
+      obj.draw(-375 + i*150, -380)
+      obj.effect("クリッピング","左", -20)
+      obj.effect("リサイズ","拡大率", 200)
+    end
+
+    obj.load("text", obj.getinfo("script_path"))
+    obj.draw(0, -450)
+
+    -- フレームバッファにターゲットを戻して仮想バッファを描画
+    obj.setoption("drawtarget","framebuffer")
+    obj.load("tempbuffer")
+    -- obj.effect() -- エフェクトを避ける場合はコメントアウト
+    obj.draw(0, 0)
+  end
+  -- ##########▲ デバッグ用 ▲##########
+
+  -- ##########▼ 実行部分 ▼##########
+  game_anime.run = function(this)
+    if this.isDebug then
+      this:debug()		-- デバッグ表示
+    end
+
+    -- 読み込んでいるスクリプト実行
+    if this.main_script ~= nil then
+      this.main_script:run()
+    end
+  end
+  -- ##########▲ 実行部分 ▲##########
+end
+
+-- //////////////////////////////
+-- //////////   main   //////////
+-- //////////////////////////////
+game_anime:run()
+
+-- 仮想バッファを新規作成しターゲットをそちらに移す
+-- obj.setoption("drawtarget","tempbuffer", obj.screen_w, obj.screen_h)
+-- フレームバッファにターゲットを戻して仮想バッファを描画 -- obj.setoption("drawtarget","framebuffer")
+-- obj.load("tempbuffer")
+-- obj.effect()
+-- obj.draw(0, 0)
